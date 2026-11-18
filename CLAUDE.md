@@ -13,14 +13,19 @@ changes once. The repository is a public GitHub repository, `Sephiroth018/claude
 
 ## Structure
 
-- **`shared/` holds the shared files**, and nothing else: `general.md` (the General part) and one
-  file per language (`lua.md`, `csharp.md`), each starting with its part's `#` heading. A consuming
-  repository's `.claude/shared/` is a copy of this folder as a whole.
+- **`shared/` holds the shared files**, and nothing else, in no subfolders: `general.md` (the
+  General part) and one file per language (`lua.md`, `csharp.md`), each starting with its part's
+  `#` heading. A consuming repository's `.claude/shared/` is a copy of this folder as a whole.
 - **This repository has no `.claude/shared/`**: its `CLAUDE.md` imports `shared/general.md`
   directly, and it uses no language part.
-- **Consuming repositories:** `Sephiroth018/Factorio-Info-Export` (`lua.md`) and
-  `Sephiroth018/BattleTechInfoExporter` (`csharp.md`). Each one's `CLAUDE.md` holds its title, the
-  imports (`@.claude/shared/general.md`, then its languages' files) and its Project part.
+- **A consuming repository's `CLAUDE.md`** holds its title, the imports
+  (`@.claude/shared/general.md`, then its languages' files) and its Project part.
+- **`.github/workflows/update-consuming-repositories.yml` lists the consuming repositories.** On a
+  push to `main` that changes `shared/`, it opens an issue and a PR replacing `.claude/shared/` in
+  each one whose copy differs, with a commit GitHub signs (GraphQL's `createCommitOnBranch`). It
+  writes to them with the secret `CONSUMING_REPOSITORIES_TOKEN`, a fine-grained personal access
+  token of the user's with read and write access to their contents, issues and pull requests. A
+  new consuming repository is added to its list and to the token.
 
 ## Writing shared files
 
@@ -31,8 +36,8 @@ changes once. The repository is a public GitHub repository, `Sephiroth018/claude
 - **A language file names no project.** What only one repository does goes in that repository's
   Project part.
 - **A change here changes every consuming repository's rules.** Its issue says which repositories
-  it affects and what they have to change besides taking the update; once it's merged, each of
-  them gets the update (`general.md`'s "Hygiene") through an issue and PR of its own.
+  it affects and what they have to change besides taking the update. Once it's merged, the
+  workflow opens each one's update PR; check that its run succeeded.
 - **Lines wrap at 100 characters**, like the consuming repositories' `CLAUDE.md` files.
 
 ## Verification
@@ -40,7 +45,8 @@ changes once. The repository is a public GitHub repository, `Sephiroth018/claude
 None beyond the Definition of done's steps 6 and 7: there's no code, so steps 1-5, `/simplify`,
 `/code-review` and CI don't apply, and "New repository setup" step 6 adds no `ci.yml`. The
 self-review also checks that the shared files still agree with each other and that every language
-file still answers what `general.md` leaves to it.
+file still answers what `general.md` leaves to it. A change to the workflow can only be tried by
+running it: after the merge, read its run and the PRs it opened.
 
 ## Versioning
 
