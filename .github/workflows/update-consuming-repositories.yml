@@ -18,6 +18,7 @@ jobs:
         repository:
           - Sephiroth018/Factorio-Info-Export
           - Sephiroth018/BattleTechInfoExporter
+          - Sephiroth018/shutter-rf-bridge
     env:
       # A fine-grained personal access token for the consuming repositories:
       # Contents, Issues and Pull requests, read and write.
