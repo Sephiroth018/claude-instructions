@@ -1,0 +1,90 @@
+name: Update consuming repositories
+
+on:
+  push:
+    branches: [main]
+    paths: [shared/**]
+
+permissions:
+  contents: read
+
+jobs:
+  open-update-pr:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The one list of consuming repositories.
+        repository:
+          - Sephiroth018/Factorio-Info-Export
+          - Sephiroth018/BattleTechInfoExporter
+    env:
+      # A fine-grained personal access token for the consuming repositories:
+      # Contents, Issues and Pull requests, read and write.
+      GH_TOKEN: ${{ secrets.CONSUMING_REPOSITORIES_TOKEN }}
+      CONSUMING_REPOSITORY: ${{ matrix.repository }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Open the issue and PR that replace .claude/shared
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # File names with their blob ids, as the contents API lists the consuming copy.
+          wanted_files=$(for file in shared/*; do
+            echo "$(basename "$file") $(git hash-object "$file")"
+          done | sort)
+          current_files=$(gh api "repos/$CONSUMING_REPOSITORY/contents/.claude/shared" \
+            --jq '.[] | "\(.name) \(.sha)"' | sort)
+          if [ "$wanted_files" = "$current_files" ]; then
+            echo "$CONSUMING_REPOSITORY is up to date."
+            exit 0
+          fi
+
+          short_sha=$(git rev-parse --short HEAD)
+          source_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/shared"
+          signature="Opened by the update workflow of $GITHUB_REPOSITORY."
+
+          issue_url=$(gh issue create --repo "$CONSUMING_REPOSITORY" --label chore \
+            --title "Update shared instructions to $short_sha" \
+            --body "The shared instruction files changed: $source_url
+
+          $signature")
+          issue_number=${issue_url##*/}
+          branch="$issue_number-update-shared-instructions"
+          headline="chore(#$issue_number): update shared instructions to $short_sha"
+
+          main_commit=$(gh api "repos/$CONSUMING_REPOSITORY/git/ref/heads/main" --jq .object.sha)
+          gh api "repos/$CONSUMING_REPOSITORY/git/refs" \
+            -f "ref=refs/heads/$branch" -f "sha=$main_commit" --silent
+
+          additions=$(for file in shared/*; do
+            jq -n --arg path ".claude/shared/$(basename "$file")" \
+              --arg contents "$(base64 -w0 "$file")" '{path: $path, contents: $contents}'
+          done | jq -s .)
+          deletions=$(comm -23 <(cut -d' ' -f1 <<<"$current_files") <(cut -d' ' -f1 <<<"$wanted_files") |
+            jq -R '{path: (".claude/shared/" + .)}' | jq -s .)
+
+          # createCommitOnBranch commits are signed by GitHub, which the signed-commits rulesets need.
+          jq -n --arg repository "$CONSUMING_REPOSITORY" --arg branch "$branch" \
+            --arg headline "$headline" --arg head "$main_commit" \
+            --argjson additions "$additions" --argjson deletions "$deletions" '{
+              query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
+              variables: {input: {
+                branch: {repositoryNameWithOwner: $repository, branchName: $branch},
+                message: {headline: $headline},
+                expectedHeadOid: $head,
+                fileChanges: {additions: $additions, deletions: $deletions}
+              }}
+            }' | gh api graphql --input - --silent
+
+          gh pr create --repo "$CONSUMING_REPOSITORY" --base main --head "$branch" \
+            --title "$headline" \
+            --body "Closes #$issue_number
+
+          Replaces \`.claude/shared/\` with the shared instruction files as of $source_url
+
+          Only \`.claude/shared/\` changes, so there's no verification checklist. Check that the Project part of \`CLAUDE.md\` still fits the changed rules.
+
+          $signature"

@@ -22,8 +22,9 @@ top of its own `CLAUDE.md`, which then only holds what's specific to the project
 ```
 
 The copy is committed, so the instructions are there wherever the repository is checked out. It's
-never edited in place: changes are made here, and each repository then replaces its copy with the
-commands under "Hygiene" in `shared/general.md`.
+never edited in place: changes are made here, and a workflow then opens a pull request replacing
+the copy in every repository on its list. A new repository makes its first copy with the commands
+under "Hygiene" in `shared/general.md`.
 
 ## AI disclaimer
 
