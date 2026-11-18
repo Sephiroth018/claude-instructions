@@ -264,9 +264,10 @@ from).
 - **The README's `## AI disclaimer` section** holds the standard text, unchanged:
 
   ```markdown
-  This project is AI-assisted: Claude Code does most of the implementation, under the direction
-  and review of the maintainer. Commits written by Claude carry a Co-Authored-By: Claude trailer,
-  and everything it posts on GitHub is marked as generated with Claude Code.
+  This project is AI-assisted: [Claude Code](https://claude.com/claude-code) does most of the
+  implementation, under the direction and review of the maintainer. Commits written by Claude
+  carry a `Co-Authored-By: Claude` trailer, and everything it posts on GitHub is marked as
+  generated with Claude Code.
   ```
 - **Decisions live in their GitHub issue**, not in separate decision records (see "Issues and
   projects").
