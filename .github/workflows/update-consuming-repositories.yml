@@ -43,6 +43,16 @@ jobs:
             exit 0
           fi
 
+          # Changed files other than the parts are configuration fragments, copied by hand.
+          changed_fragments=$(comm -23 <(echo "$wanted_files") <(echo "$current_files") |
+            cut -d' ' -f1 | { grep -v '\.md$' || true; })
+          if [ -n "$changed_fragments" ]; then
+            fragment_list=$(sed 's/.*/`&`/' <<<"$changed_fragments" | paste -sd, - | sed 's/,/, /g')
+            verification="Configuration fragments changed: $fragment_list. Where the language part requires a copy of one, a further commit on this PR updates it, and the PR then gets the Definition of done's checks."
+          else
+            verification="Only \`.claude/shared/\` changes, so there's no verification checklist."
+          fi
+
           short_sha=$(git rev-parse --short HEAD)
           source_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/shared"
           signature="Opened by the update workflow of $GITHUB_REPOSITORY."
@@ -86,6 +96,6 @@ jobs:
 
           Replaces \`.claude/shared/\` with the shared instruction files as of $source_url
 
-          Only \`.claude/shared/\` changes, so there's no verification checklist. Check that the Project part of \`CLAUDE.md\` still fits the changed rules.
+          $verification Check that the Project part of \`CLAUDE.md\` still fits the changed rules.
 
           $signature"
