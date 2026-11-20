@@ -9,7 +9,58 @@ permissions:
   contents: read
 
 jobs:
+  read-requirements:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      pull_request_url: ${{ steps.read.outputs.pull_request_url }}
+      requirements: ${{ steps.read.outputs.requirements }}
+    steps:
+      - name: Read the merged PR's "Consuming repositories" section
+        id: read
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          pull_request=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" \
+            --jq '[.[] | select(.merged_at != null)][0]')
+          if [ "$pull_request" = null ]; then
+            echo "::error::No merged PR found for $GITHUB_SHA."
+            exit 1
+          fi
+          pull_request_url=$(jq -r .html_url <<<"$pull_request")
+          description=$(jq -r '.body // ""' <<<"$pull_request" | tr -d '\r')
+
+          if ! grep -qx '## Consuming repositories' <<<"$description"; then
+            echo "::error::$pull_request_url has no \"## Consuming repositories\" section."
+            exit 1
+          fi
+          # The description's closing "Generated with" line isn't part of a section that comes last.
+          section=$(awk '/^#+ / { in_section = ($0 == "## Consuming repositories"); next } in_section' \
+            <<<"$description" | sed -E '/^[[:space:]]*$/d; /^🤖 Generated with /d')
+
+          if grep -qixE 'none\.?' <<<"$section"; then
+            requirements=""
+          elif [ -n "$section" ] && ! grep -qvE '^(- |  )' <<<"$section" && [[ $section == "- "* ]]; then
+            requirements=$(sed 's/^- /- [ ] /' <<<"$section")
+          else
+            echo "::error::The \"## Consuming repositories\" section of $pull_request_url must be \"None\" or a bullet list."
+            exit 1
+          fi
+
+          delimiter=$(openssl rand -hex 16)
+          {
+            echo "pull_request_url=$pull_request_url"
+            echo "requirements<<$delimiter"
+            printf '%s\n' "$requirements"
+            echo "$delimiter"
+          } >>"$GITHUB_OUTPUT"
+
   open-update-pr:
+    needs: read-requirements
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -19,16 +70,18 @@ jobs:
           - Sephiroth018/Factorio-Info-Export
           - Sephiroth018/BattleTechInfoExporter
           - Sephiroth018/shutter-rf-bridge
-    env:
-      # A fine-grained personal access token for the consuming repositories:
-      # Contents, Issues and Pull requests, read and write.
-      GH_TOKEN: ${{ secrets.CONSUMING_REPOSITORIES_TOKEN }}
-      CONSUMING_REPOSITORY: ${{ matrix.repository }}
     steps:
       - uses: actions/checkout@v7
 
       - name: Open the issue and PR that replace .claude/shared
         shell: bash
+        env:
+          # A fine-grained personal access token for the consuming repositories:
+          # Contents, Issues and Pull requests, read and write.
+          GH_TOKEN: ${{ secrets.CONSUMING_REPOSITORIES_TOKEN }}
+          CONSUMING_REPOSITORY: ${{ matrix.repository }}
+          PULL_REQUEST_URL: ${{ needs.read-requirements.outputs.pull_request_url }}
+          REQUIREMENTS: ${{ needs.read-requirements.outputs.requirements }}
         run: |
           set -euo pipefail
 
@@ -44,27 +97,70 @@ jobs:
           fi
 
           # Changed files other than the parts are configuration fragments, copied by hand.
-          changed_fragments=$(comm -23 <(echo "$wanted_files") <(echo "$current_files") |
-            cut -d' ' -f1 | { grep -v '\.md$' || true; })
-          if [ -n "$changed_fragments" ]; then
-            fragment_list=$(sed 's/.*/`&`/' <<<"$changed_fragments" | paste -sd, - | sed 's/,/, /g')
-            verification="Configuration fragments changed: $fragment_list. Where the language part requires a copy of one, a further commit on this PR updates it, and the PR then gets the Definition of done's checks."
-          else
-            verification="Only \`.claude/shared/\` changes, so there's no verification checklist."
-          fi
+          fragment_items=$(comm -23 <(echo "$wanted_files") <(echo "$current_files") |
+            cut -d' ' -f1 | { grep -v '\.md$' || true; } |
+            sed "s|.*|- [ ] Update the copy of \`.claude/shared/&\` the language part requires.|")
+
+          # This update supersedes the older ones still open. Their commits are abandoned with
+          # their branches, so their checklist items carry over unticked.
+          superseded=$(gh pr list --repo "$CONSUMING_REPOSITORY" --state open \
+            --json number,headRefName --jq '.[] | "\(.number) \(.headRefName)"' |
+            { grep -E '^[0-9]+ [0-9]+-update-shared-instructions$' || true; })
+          carried_items=""
+          carried_issues=""
+          while read -r _ superseded_branch; do
+            if [ -z "$superseded_branch" ]; then
+              continue
+            fi
+            superseded_issue=${superseded_branch%%-*}
+            superseded_items=$(gh issue view "$superseded_issue" --repo "$CONSUMING_REPOSITORY" \
+              --json body --jq .body | tr -d '\r' |
+              awk '/^#+ / { in_section = ($0 == "## Checklist"); next } in_section' |
+              { grep -E '^(- \[.\] |  )' || true; } | sed -E 's/^- \[[xX]\] /- [ ] /')
+            if [ -n "$superseded_items" ]; then
+              carried_items+="$superseded_items"$'\n'
+              carried_issues+="${carried_issues:+, }#$superseded_issue"
+            fi
+          done <<<"$superseded"
+
+          # An item is its "- " line with the lines up to the next one; each is listed once.
+          checklist=$(printf '%s\n' "$carried_items" "$REQUIREMENTS" "$fragment_items" |
+            sed '/^$/d' | awk '
+              function print_item() { if (item != "" && !seen[item]++) printf "%s", item; item = "" }
+              /^- / { print_item() }
+              { item = item $0 "\n" }
+              END { print_item() }')
 
           short_sha=$(git rev-parse --short HEAD)
           source_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/shared"
           signature="Opened by the update workflow of $GITHUB_REPOSITORY."
 
+          issue_body="The shared instruction files changed: $source_url (merged with $PULL_REQUEST_URL)"
+          if [ -n "$checklist" ]; then
+            issue_body+="
+
+          ## Checklist
+
+          What this repository has to change besides taking the update, as further commits on the update PR${carried_issues:+ (with the items of the superseded $carried_issues)}:
+
+          $checklist"
+          fi
+
           issue_url=$(gh issue create --repo "$CONSUMING_REPOSITORY" --label chore \
             --title "Update shared instructions to $short_sha" \
-            --body "The shared instruction files changed: $source_url
+            --body "$issue_body
 
           $signature")
           issue_number=${issue_url##*/}
           branch="$issue_number-update-shared-instructions"
           headline="chore(#$issue_number): update shared instructions to $short_sha"
+          if [ -n "$checklist" ]; then
+            draft=(--draft)
+            next_step="It's a draft because the checklist in #$issue_number says what this repository has to change with it: a session here adds those commits, checks the PR against the Definition of done and marks it ready."
+          else
+            draft=()
+            next_step="Only \`.claude/shared/\` changes, so there's no verification checklist."
+          fi
 
           main_commit=$(gh api "repos/$CONSUMING_REPOSITORY/git/ref/heads/main" --jq .object.sha)
           gh api "repos/$CONSUMING_REPOSITORY/git/refs" \
@@ -91,30 +187,26 @@ jobs:
             }' | gh api graphql --input - --silent
 
           pr_url=$(gh pr create --repo "$CONSUMING_REPOSITORY" --base main --head "$branch" \
-            --title "$headline" \
+            "${draft[@]}" --title "$headline" \
             --body "Closes #$issue_number
 
           Replaces \`.claude/shared/\` with the shared instruction files as of $source_url
 
-          $verification Check that the Project part of \`CLAUDE.md\` still fits the changed rules.
+          $next_step Check that the Project part of \`CLAUDE.md\` still fits the changed rules.
 
           $signature")
 
-          # This update supersedes the older ones still open: close each one's PR, issue and branch.
           superseded_comment="Superseded by $pr_url
 
           $signature"
-          gh pr list --repo "$CONSUMING_REPOSITORY" --state open --json number,headRefName \
-            --jq '.[] | "\(.number) \(.headRefName)"' |
-            { grep -E '^[0-9]+ [0-9]+-update-shared-instructions$' || true; } |
-            while read -r superseded_pr superseded_branch; do
-              if [ "$superseded_branch" = "$branch" ]; then
-                continue
-              fi
-              gh pr close "$superseded_pr" --repo "$CONSUMING_REPOSITORY" \
-                --comment "$superseded_comment"
-              gh issue close "${superseded_branch%%-*}" --repo "$CONSUMING_REPOSITORY" \
-                --reason "not planned" --comment "$superseded_comment"
-              gh api -X DELETE --silent \
-                "repos/$CONSUMING_REPOSITORY/git/refs/heads/$superseded_branch"
-            done
+          while read -r superseded_pr superseded_branch; do
+            if [ -z "$superseded_pr" ]; then
+              continue
+            fi
+            gh pr close "$superseded_pr" --repo "$CONSUMING_REPOSITORY" \
+              --comment "$superseded_comment"
+            gh issue close "${superseded_branch%%-*}" --repo "$CONSUMING_REPOSITORY" \
+              --reason "not planned" --comment "$superseded_comment"
+            gh api -X DELETE --silent \
+              "repos/$CONSUMING_REPOSITORY/git/refs/heads/$superseded_branch"
+          done <<<"$superseded"
