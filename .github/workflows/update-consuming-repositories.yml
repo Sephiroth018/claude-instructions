@@ -42,7 +42,7 @@ jobs:
           section=$(awk '/^#+ / { in_section = ($0 == "## Consuming repositories"); next } in_section' \
             <<<"$description" | sed -E '/^[[:space:]]*$/d; /^🤖 Generated with /d')
 
-          if grep -qixE 'none\.?' <<<"$section"; then
+          if [[ ${section,,} =~ ^none\.?$ ]]; then
             requirements=""
           elif [ -n "$section" ] && ! grep -qvE '^(- |  )' <<<"$section" && [[ $section == "- "* ]]; then
             requirements=$(sed 's/^- /- [ ] /' <<<"$section")
