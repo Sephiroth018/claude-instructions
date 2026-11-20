@@ -88,10 +88,9 @@ Once per repository, before the rest of the workflow applies:
 - **Moves and renames get their own commit**, made with `git mv`, containing only the move and the
   minimal edits it forces (module paths, references), so git keeps following the file's history.
 - **Rewriting is the exception, and only while the PR is a draft.** Prefer new commits. Amend or
-  rebase (pushed with `--force-with-lease`) only when a commit is wrong on its own, not when the
-  work merely moved on: it breaks the per-commit rule, has a wrong message, or has a mistake that a
-  later commit would only correct. Once the PR is ready for
-  review, changes are new commits so they can be reviewed on their own, in the normal message
+  rebase (pushed with `--force-with-lease`) only when a commit is wrong on its own (it breaks the
+  per-commit rule or has a wrong message), not when the work merely moved on. Once the PR is ready
+  for review, changes are new commits so they can be reviewed on their own, in the normal message
   format (usually `refactor` or `chore`; no `fixup!` commits). `main` is never rewritten.
 - **Commits are signed through 1Password's SSH agent.** If a commit or push fails because the agent
   is locked, stop, tell the user and wait. Don't retry in a loop, and never bypass signing.
