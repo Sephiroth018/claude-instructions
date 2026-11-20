@@ -21,7 +21,8 @@ this file.
   when the first one is needed. Never loosen either to make a change pass. Its `end_of_line = lf`
   matches `.gitattributes`, so formatting checks see the same line endings on every machine.
 - **`.editorconfig` ends with `.claude/shared/csharp.editorconfig`, unchanged:** the settings every
-  C# repository shares. When an update PR changes it, a further commit on that PR copies it in.
+  C# repository shares. An update that changes it arrives as a draft PR whose checklist asks for
+  the copy, made in a further commit on that PR.
 - **ReSharper Command Line Tools** (`JetBrains.ReSharper.GlobalTools`, a local tool) apply the
   IDE's rules outside it: `jb cleanupcode` is the formatter, `jb inspectcode` reports the
   inspections. Both run with

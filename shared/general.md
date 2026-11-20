@@ -208,9 +208,11 @@ Apply these to every change and check them in every review.
   CLI's own project and package commands, output of the project's own generators, and the update
   of `.claude/shared/`.
 - **`.claude/shared/` is replaced as a whole, never edited.** When the shared files change,
-  `claude-instructions` opens the issue and PR for it in every repository on its list. By hand, as
-  for a new repository's first copy: `git fetch https://github.com/Sephiroth018/claude-instructions
-  main`, then `git rm -r -q .claude/shared` (not the first time) and
+  `claude-instructions` opens the issue and PR for it in every repository on its list. A PR that
+  arrives as a draft needs more than the copy: its issue's checklist says what, added as further
+  commits before the PR is marked ready. By hand, as for a new repository's first copy:
+  `git fetch https://github.com/Sephiroth018/claude-instructions main`, then
+  `git rm -r -q .claude/shared` (not the first time) and
   `git read-tree --prefix=.claude/shared -u FETCH_HEAD:shared`. An update is committed on its own
   as `chore(#<issue>): update shared instructions to <short sha>`, naming the fetched commit; the
   first copy is part of the repository's first commit.
