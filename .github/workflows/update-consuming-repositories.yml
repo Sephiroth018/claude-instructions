@@ -90,7 +90,7 @@ jobs:
               }}
             }' | gh api graphql --input - --silent
 
-          gh pr create --repo "$CONSUMING_REPOSITORY" --base main --head "$branch" \
+          pr_url=$(gh pr create --repo "$CONSUMING_REPOSITORY" --base main --head "$branch" \
             --title "$headline" \
             --body "Closes #$issue_number
 
@@ -98,4 +98,23 @@ jobs:
 
           $verification Check that the Project part of \`CLAUDE.md\` still fits the changed rules.
 
+          $signature")
+
+          # This update supersedes the older ones still open: close each one's PR, issue and branch.
+          superseded_comment="Superseded by $pr_url
+
           $signature"
+          gh pr list --repo "$CONSUMING_REPOSITORY" --state open --json number,headRefName \
+            --jq '.[] | "\(.number) \(.headRefName)"' |
+            { grep -E '^[0-9]+ [0-9]+-update-shared-instructions$' || true; } |
+            while read -r superseded_pr superseded_branch; do
+              if [ "$superseded_branch" = "$branch" ]; then
+                continue
+              fi
+              gh pr close "$superseded_pr" --repo "$CONSUMING_REPOSITORY" \
+                --comment "$superseded_comment"
+              gh issue close "${superseded_branch%%-*}" --repo "$CONSUMING_REPOSITORY" \
+                --reason "not planned" --comment "$superseded_comment"
+              gh api -X DELETE --silent \
+                "repos/$CONSUMING_REPOSITORY/git/refs/heads/$superseded_branch"
+            done
