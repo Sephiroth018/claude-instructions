@@ -14,8 +14,10 @@ changes once. The repository is a public GitHub repository, `Sephiroth018/claude
 ## Structure
 
 - **`shared/` holds the shared files**, and nothing else, in no subfolders: `general.md` (the
-  General part) and one file per language (`lua.md`, `csharp.md`), each starting with its part's
-  `#` heading. A consuming repository's `.claude/shared/` is a copy of this folder as a whole.
+  General part), one file per language (`lua.md`, `csharp.md`), each starting with its part's `#`
+  heading, and the configuration fragments a language part requires its repositories to copy
+  (`csharp.editorconfig`). A consuming repository's `.claude/shared/` is a copy of this folder as a
+  whole.
 - **This repository has no `.claude/shared/`**: its `CLAUDE.md` imports `shared/general.md`
   directly, and it uses no language part.
 - **A consuming repository's `CLAUDE.md`** holds its title, the imports
