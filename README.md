@@ -8,6 +8,8 @@ one place so a rule changes once:
   definition of done, engineering principles, naming, comments and testing rules for any project.
 - [`shared/lua.md`](shared/lua.md) and [`shared/csharp.md`](shared/csharp.md): toolchain, naming
   and conventions for projects in that language.
+- [`shared/csharp.editorconfig`](shared/csharp.editorconfig): the `.editorconfig` settings every
+  C# project shares, copied into its own `.editorconfig`.
 
 ## Use
 
