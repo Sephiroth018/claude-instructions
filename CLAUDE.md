@@ -31,10 +31,12 @@ changes once. The repository is a public GitHub repository, `Sephiroth018/claude
 
 ## Writing shared files
 
-- **`general.md` names no language, tool or project.** Where a rule depends on the language, it
-  says "the language part" and every language file answers it: the formatter, the type checker or
-  linter, the test framework and its parameterized tests, the mocking library, how tests reach
-  internals, test names and layout, naming and casing, and the conventions that need judgment.
+- **`general.md` names no language, no language's tools and no consuming repository.** It does
+  name what every repository's workflow uses: git, GitHub, 1Password and Claude Code. Where a rule
+  depends on the language, it says "the language part" and every language file answers it: the
+  formatter, the type checker or linter, the test framework and its parameterized tests, the
+  mocking library, how tests reach internals, test names and layout, naming and casing, and the
+  conventions that need judgment.
 - **A language file names no project.** What only one repository does goes in that repository's
   Project part.
 - **A change here changes every consuming repository's rules.** Its issue says which repositories

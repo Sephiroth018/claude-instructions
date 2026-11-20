@@ -54,6 +54,8 @@ Once per repository, before the rest of the workflow applies:
    the `pull_request` trigger has `types: [opened, synchronize, reopened, ready_for_review]`.
 7. **No Dependabot or other scheduled workflows**: they use up Actions minutes even on an abandoned
    repository.
+8. **Register the repository in `claude-instructions`** with an issue there: its update workflow's
+   list gets the repository, and the user adds it to the workflow's token.
 
 ## Source control
 
@@ -117,7 +119,8 @@ Once per repository, before the rest of the workflow applies:
   Merge with a merge commit, and never delete the remote branch yourself (no `--delete-branch`, no
   `git push --delete`): the repository deletes it after the merge, and only then does GitHub
   retarget the PRs stacked on it to `main`; a branch deleted by a client closes them instead.
-- **After merging:** switch to `main`, `git pull --prune`, delete the local branch.
+- **After merging:** update `main` (`git pull --prune` on it; in a worktree, `git fetch --prune`)
+  and delete the local branch, unless it's the worktree's own.
 
 ## Definition of done
 
@@ -206,8 +209,9 @@ Apply these to every change and check them in every review.
   `claude-instructions` opens the issue and PR for it in every repository on its list. By hand, as
   for a new repository's first copy: `git fetch https://github.com/Sephiroth018/claude-instructions
   main`, then `git rm -r -q .claude/shared` (not the first time) and
-  `git read-tree --prefix=.claude/shared -u FETCH_HEAD:shared`, committed on its own as
-  `chore(#<issue>): update shared instructions to <short sha>`, the fetched commit's.
+  `git read-tree --prefix=.claude/shared -u FETCH_HEAD:shared`. An update is committed on its own
+  as `chore(#<issue>): update shared instructions to <short sha>`, naming the fetched commit; the
+  first copy is part of the repository's first commit.
 - **Clean up and modernize the code you touch.** Small fixes and current idioms within the lines
   being changed are part of the change; anything beyond them is asked about first.
 - **No dead code.** Delete it rather than comment it out; git keeps the history.
@@ -259,8 +263,8 @@ from).
   game's members). Where the language's doc comments can link a symbol, link it so renames follow;
   elsewhere the plain name, as `(Type.member)` where it's a side reference.
 - **Change a comment in the same edit as its code**, or delete it.
-- **No issue links**, except to explain code that deliberately looks like a bug when the reason is
-  too long to state inline.
+- **No issue links**, except the issue number of a `TODO` or a skipped test, and to explain code
+  that deliberately looks like a bug when the reason is too long to state inline.
 - **Nothing machine-local:** no paths or notes that exist on one machine only; cite the original
   source.
 - **Doc comments only where name and signature aren't enough**, apart from what the language part
