@@ -17,6 +17,8 @@ A repository carries a copy of `shared/` as `.claude/shared/` and imports what a
 top of its own `CLAUDE.md`, which then only holds what's specific to the project:
 
 ```markdown
+# CLAUDE.md — <repository name>
+
 @.claude/shared/general.md
 @.claude/shared/lua.md
 
@@ -30,7 +32,10 @@ under "Hygiene" in `shared/general.md`.
 
 ## AI disclaimer
 
-These files are written and maintained with Claude Code, under my direction and review.
+This project is AI-assisted: [Claude Code](https://claude.com/claude-code) does most of the
+implementation, under the direction and review of the maintainer. Commits written by Claude
+carry a `Co-Authored-By: Claude` trailer, and everything it posts on GitHub is marked as
+generated with Claude Code.
 
 ## License
 
