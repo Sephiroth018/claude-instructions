@@ -58,6 +58,8 @@ dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 dotnet_style_readonly_field = true:warning
 
 # Naming
+# The build reports violations at this severity; the rules' own severities only apply in the IDE.
+dotnet_diagnostic.IDE1006.severity = warning
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum, delegate
 dotnet_naming_symbols.interfaces.applicable_kinds = interface
 dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
