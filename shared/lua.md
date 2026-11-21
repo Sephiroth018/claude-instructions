@@ -11,7 +11,7 @@ this file.
 - **EmmyLua is the type checker and linter**, run from the command line as `emmylua_check
   --warnings-as-errors` so its results don't depend on anyone's editor (without the flag, warnings
   don't fail it). `.emmyrc.json` holds the runtime version, the library definitions and the enabled
-  diagnostics; never loosen it to make a change pass.
+  diagnostics.
 - **The Lua version is the host's**, set in `.emmyrc.json`: an embedded Lua (a game's) is checked
   against that host's version and its API definitions, not a standalone Lua.
 - **Tests, where a project has them, use busted.** Spec files are `<module>_spec.lua` in `spec/`,

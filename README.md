@@ -8,6 +8,8 @@ one place so a rule changes once:
   definition of done, engineering principles, naming, comments and testing rules for any project.
 - [`shared/lua.md`](shared/lua.md) and [`shared/csharp.md`](shared/csharp.md): toolchain, naming
   and conventions for projects in that language.
+- [`shared/repository-setup.md`](shared/repository-setup.md): how a new repository is set up and
+  gets its copy of these files. Read once per repository, so no `CLAUDE.md` imports it.
 - [`shared/csharp.editorconfig`](shared/csharp.editorconfig): the `.editorconfig` settings every
   C# project shares, copied into its own `.editorconfig`.
 
@@ -28,7 +30,7 @@ top of its own `CLAUDE.md`, which then only holds what's specific to the project
 The copy is committed, so the instructions are there wherever the repository is checked out. It's
 never edited in place: changes are made here, and a workflow then opens a pull request replacing
 the copy in every repository on its list. A new repository makes its first copy with the commands
-under "Hygiene" in `shared/general.md`.
+in `shared/repository-setup.md`.
 
 ## AI disclaimer
 

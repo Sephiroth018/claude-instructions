@@ -29,33 +29,8 @@
   repository and copied into every other repository's `.claude/shared/`, where `CLAUDE.md` imports
   them. They're changed only in `claude-instructions`: when a change belongs in one, say so instead
   of editing the copy.
-
-## New repository setup
-
-Once per repository, before the rest of the workflow applies:
-
-1. **First commit, directly on `main` and without an issue** (`chore: set up repository`):
-   `CLAUDE.md` importing the shared files, their copy in `.claude/shared/` (see "Hygiene"), the
-   stack's standard `.gitignore`, a `.gitattributes` fixing line endings to LF on every machine
-   (`* text=auto eol=lf`, CRLF only for `.cmd`/`.bat`), a README with the project goal and the AI
-   disclaimer, the LICENSE (MIT unless the project says otherwise) and the initial project
-   skeleton.
-2. **Create the GitHub repository** (name and visibility decided with the user) and push.
-3. **Repository settings:** merge commits only (no squash or rebase merging), default merge message
-   from the PR title and description, head branches deleted automatically after merging.
-4. **Ruleset on `main`:** changes only through PRs, signed commits required, no force pushes or
-   deletion, and the CI checks required once CI exists.
-5. **Labels:** delete `good first issue`, `help wanted`, `accessibility` and `invalid`; add `chore`
-   (build, tooling, dependencies), `refactor` (restructuring without behavior change) and
-   `research` (finding out how something works before building on it). Work that is only about
-   tests gets `enhancement` or `chore`.
-6. **CI** is a GitHub Actions workflow, `.github/workflows/ci.yml`, running on pushes to `main`
-   and on PRs, but not on drafts: every job has `if: ${{ !github.event.pull_request.draft }}`, and
-   the `pull_request` trigger has `types: [opened, synchronize, reopened, ready_for_review]`.
-7. **No Dependabot or other scheduled workflows**: they use up Actions minutes even on an abandoned
-   repository.
-8. **Register the repository in `claude-instructions`** with an issue there: its update workflow's
-   list gets the repository, and the user adds it to the workflow's token.
+- **A new repository is set up by `repository-setup.md`**, the shared file next to this one that
+  no `CLAUDE.md` imports. Read it before setting one up or copying the shared files by hand.
 
 ## Source control
 
@@ -82,10 +57,9 @@ Once per repository, before the rest of the workflow applies:
 - **Commit messages:** `<type>(#<issue>): <imperative summary>`, with type `feat`, `fix`,
   `refactor`, `docs`, `test` or `chore` (build, dependencies, CI, tooling).
 - **The per-commit rule:** every commit lands on `main` (PRs merge with merge commits), so each one
-  is formatted with the language part's formatter, builds or loads, and breaks nothing that worked.
-  New code may be unreachable or incomplete, but nothing crashes, the existing tests still pass,
-  and the static checks report nothing at warning level or above except what that unfinished state
-  causes (unreachable or unused code). It's checked before each commit.
+  passes steps 2-5 of the "Definition of done", checked before the commit. New code may be
+  unreachable or incomplete, and steps 3 and 5 may report what that unfinished state causes
+  (unreachable or unused code).
 - **Push every commit** right after making it.
 - **Moves and renames get their own commit**, made with `git mv`, containing only the move and the
   minimal edits it forces (module paths, references), so git keeps following the file's history.
@@ -106,7 +80,7 @@ Once per repository, before the rest of the workflow applies:
   title and description final. The description explains what the code can't (why, rejected
   alternatives, risks, how it was verified, what deserves a close look). No file-by-file list.
 - **Watch the PR** once it's ready: turn on the desktop app's monitoring (auto-fix CI, address
-  comments). Fix CI failures at the cause; never skip or weaken a check.
+  comments). Fix CI failures at the cause (see "Errors").
 - **The user's own review comments fire no events** (a solo author can only leave "comment"
   reviews). When the user says they've reviewed, read all three surfaces: PR comments, inline diff
   comments and review summaries. Answer each comment on the PR, inline ones in their own thread.
@@ -169,16 +143,8 @@ Apply these to every change and check them in every review.
 - **Types say what things are.** A concept several types share is a shared type: a base for the
   common fields, an interface for a role unrelated types play. Judge by concept, not by whether
   code uses the shared part today. Two types that merely look alike stay separate.
-- **A thing that passes through states gets one type per state**, derived from the thing's base:
-  an order that is first a draft and then placed is an order base with a draft order and a placed
-  order. Each state also has an interface its types share, so a list of placed things is typed by
-  what "placed" guarantees.
 - **A choice is structure, not nullable fields.** "Only the fields its type uses are set" means one
   derived type per case. Fields that are null together become one nullable nested type.
-- **Generics where only a member's type varies**, never its name or meaning. Where members are
-  added, use a base type.
-- **A type owns what's about itself**: its shape, its comparison, how it's written out. Code that
-  handles many types knows only their common base.
 - **Pure logic in the middle, side effects at the edges.** I/O, external systems, time and
   randomness stay at the boundaries, so the core is testable without them.
 - **Validate at boundaries, trust inside.** Input is checked where it enters; inner code doesn't
@@ -192,6 +158,8 @@ Apply these to every change and check them in every review.
   control flow.
 - **Don't silence the compiler, type checker or linter** without a narrow, stated reason (see the
   language part's conventions).
+- **Never weaken a check to make a change pass**: not the formatter's, type checker's or linter's
+  configuration, and not a CI check, which is never skipped either. Fix the cause.
 
 ### Dependencies
 
@@ -210,12 +178,9 @@ Apply these to every change and check them in every review.
 - **`.claude/shared/` is replaced as a whole, never edited.** When the shared files change,
   `claude-instructions` opens the issue and PR for it in every repository on its list. A PR that
   arrives as a draft needs more than the copy: its issue's checklist says what, added as further
-  commits before the PR is marked ready. By hand, as for a new repository's first copy:
-  `git fetch https://github.com/Sephiroth018/claude-instructions main`, then
-  `git rm -r -q .claude/shared` (not the first time) and
-  `git read-tree --prefix=.claude/shared -u FETCH_HEAD:shared`. An update is committed on its own
-  as `chore(#<issue>): update shared instructions to <short sha>`, naming the fetched commit; the
-  first copy is part of the repository's first commit.
+  commits before the PR is marked ready. An update made by hand (see `repository-setup.md`) is
+  committed on its own as `chore(#<issue>): update shared instructions to <short sha>`, naming
+  the fetched commit.
 - **Clean up and modernize the code you touch.** Small fixes and current idioms within the lines
   being changed are part of the change; anything beyond them is asked about first.
 - **No dead code.** Delete it rather than comment it out; git keeps the history.
