@@ -96,7 +96,7 @@ jobs:
             exit 0
           fi
 
-          # Changed files other than the parts are configuration fragments, copied by hand.
+          # Changed files other than Markdown ones are configuration fragments, copied by hand.
           fragment_items=$(comm -23 <(echo "$wanted_files") <(echo "$current_files") |
             cut -d' ' -f1 | { grep -v '\.md$' || true; } |
             sed "s|.*|- [ ] Update the copy of \`.claude/shared/&\` the language part requires.|")

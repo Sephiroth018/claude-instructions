@@ -29,33 +29,8 @@
   repository and copied into every other repository's `.claude/shared/`, where `CLAUDE.md` imports
   them. They're changed only in `claude-instructions`: when a change belongs in one, say so instead
   of editing the copy.
-
-## New repository setup
-
-Once per repository, before the rest of the workflow applies:
-
-1. **First commit, directly on `main` and without an issue** (`chore: set up repository`):
-   `CLAUDE.md` importing the shared files, their copy in `.claude/shared/` (see "Hygiene"), the
-   stack's standard `.gitignore`, a `.gitattributes` fixing line endings to LF on every machine
-   (`* text=auto eol=lf`, CRLF only for `.cmd`/`.bat`), a README with the project goal and the AI
-   disclaimer, the LICENSE (MIT unless the project says otherwise) and the initial project
-   skeleton.
-2. **Create the GitHub repository** (name and visibility decided with the user) and push.
-3. **Repository settings:** merge commits only (no squash or rebase merging), default merge message
-   from the PR title and description, head branches deleted automatically after merging.
-4. **Ruleset on `main`:** changes only through PRs, signed commits required, no force pushes or
-   deletion, and the CI checks required once CI exists.
-5. **Labels:** delete `good first issue`, `help wanted`, `accessibility` and `invalid`; add `chore`
-   (build, tooling, dependencies), `refactor` (restructuring without behavior change) and
-   `research` (finding out how something works before building on it). Work that is only about
-   tests gets `enhancement` or `chore`.
-6. **CI** is a GitHub Actions workflow, `.github/workflows/ci.yml`, running on pushes to `main`
-   and on PRs, but not on drafts: every job has `if: ${{ !github.event.pull_request.draft }}`, and
-   the `pull_request` trigger has `types: [opened, synchronize, reopened, ready_for_review]`.
-7. **No Dependabot or other scheduled workflows**: they use up Actions minutes even on an abandoned
-   repository.
-8. **Register the repository in `claude-instructions`** with an issue there: its update workflow's
-   list gets the repository, and the user adds it to the workflow's token.
+- **A new repository is set up by `repository-setup.md`**, the shared file next to this one that
+  no `CLAUDE.md` imports. Read it before setting one up or copying the shared files by hand.
 
 ## Source control
 
@@ -211,12 +186,9 @@ Apply these to every change and check them in every review.
 - **`.claude/shared/` is replaced as a whole, never edited.** When the shared files change,
   `claude-instructions` opens the issue and PR for it in every repository on its list. A PR that
   arrives as a draft needs more than the copy: its issue's checklist says what, added as further
-  commits before the PR is marked ready. By hand, as for a new repository's first copy:
-  `git fetch https://github.com/Sephiroth018/claude-instructions main`, then
-  `git rm -r -q .claude/shared` (not the first time) and
-  `git read-tree --prefix=.claude/shared -u FETCH_HEAD:shared`. An update is committed on its own
-  as `chore(#<issue>): update shared instructions to <short sha>`, naming the fetched commit; the
-  first copy is part of the repository's first commit.
+  commits before the PR is marked ready. An update made by hand (see `repository-setup.md`) is
+  committed on its own as `chore(#<issue>): update shared instructions to <short sha>`, naming
+  the fetched commit.
 - **Clean up and modernize the code you touch.** Small fixes and current idioms within the lines
   being changed are part of the change; anything beyond them is asked about first.
 - **No dead code.** Delete it rather than comment it out; git keeps the history.
