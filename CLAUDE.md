@@ -25,10 +25,14 @@ changes once. The repository is a public GitHub repository, `Sephiroth018/claude
 - **`.github/workflows/update-consuming-repositories.yml` lists the consuming repositories.** On a
   push to `main` that changes `shared/`, it opens an issue and a PR replacing `.claude/shared/` in
   each one whose copy differs, with a commit GitHub signs (GraphQL's `createCommitOnBranch`), and
-  closes the older update PRs still open there, with their issues and branches. It writes to them
-  with the secret `CONSUMING_REPOSITORIES_TOKEN`, a fine-grained personal access token of the
-  user's with read and write access to their contents, issues and pull requests. A new consuming
-  repository is added to its list and to the token.
+  closes the older update PRs still open there, with their issues and branches. The issue gets a
+  checklist of what the repository has to change besides: the merged PR's "Consuming repositories"
+  section, an item per changed configuration fragment, and the items of the updates it closed,
+  unticked again because their commits go with their branches. With a checklist the PR opens as a
+  draft, without one ready for review. It writes to them with the secret
+  `CONSUMING_REPOSITORIES_TOKEN`, a fine-grained personal access token of the user's with read and
+  write access to their contents, issues and pull requests. A new consuming repository is added to
+  its list and to the token.
 
 ## Writing shared files
 
@@ -41,8 +45,13 @@ changes once. The repository is a public GitHub repository, `Sephiroth018/claude
 - **A language file names no project.** What only one repository does goes in that repository's
   Project part.
 - **A change here changes every consuming repository's rules.** Its issue says which repositories
-  it affects and what they have to change besides taking the update. Once it's merged, the
-  workflow opens each one's update PR; check that its run succeeded.
+  it affects. Once it's merged, the workflow opens each one's update PR; check that its run
+  succeeded.
+- **A PR that changes `shared/` has a `## Consuming repositories` section** in its description,
+  saying what they have to change besides taking the update: `None`, or a bullet list. The
+  workflow copies the list into every consuming repository's issue and fails without the section,
+  so it's written for a reader there: an item names the repositories it concerns when that isn't
+  all of them, and refers to an issue here in full (`Sephiroth018/claude-instructions#11`).
 - **Lines wrap at 100 characters**, like the consuming repositories' `CLAUDE.md` files.
 
 ## Verification
