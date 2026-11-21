@@ -22,8 +22,11 @@ this file.
   the `it` sentence; busted has no construct of its own. The loop generates tests, so "no loops or
   conditionals", which is about a test's body, still holds.
 - **Test doubles use luassert's spies, stubs and mocks**, which come with busted.
-- **Coverage is measured by LuaCov** (`busted --coverage`). It has no threshold of its own: CI
-  reads the `Total` line of its report and fails below the threshold, which the workflow holds.
+- **Coverage is measured by LuaCov**, run by `busted --coverage`. `.luacov` sets `include` to the
+  project's own modules, since LuaCov otherwise counts busted and every other loaded library too,
+  `includeuntestedfiles` so a module no test loads counts as uncovered, and `runreport` so the run
+  writes the report. LuaCov has no threshold of its own: CI reads the report's `Total` line and
+  fails below the threshold, which the workflow holds.
 
 ## Lua naming
 
