@@ -25,9 +25,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          pull_request=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" \
-            --jq '[.[] | select(.merged_at != null)][0]')
-          if [ "$pull_request" = null ]; then
+          # GitHub links a merge commit to its PR a moment after the push that starts this run.
+          for attempt in 1 2 3 4 5 6; do
+            pull_request=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" \
+              --jq '[.[] | select(.merged_at != null)][0] // empty')
+            if [ -n "$pull_request" ] || [ "$attempt" = 6 ]; then
+              break
+            fi
+            sleep 10
+          done
+          if [ -z "$pull_request" ]; then
             echo "::error::No merged PR found for $GITHUB_SHA."
             exit 1
           fi
