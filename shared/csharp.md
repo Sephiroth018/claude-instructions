@@ -29,8 +29,9 @@ this file.
   `--disable-settings-layers="GlobalAll;GlobalPerProduct;SolutionPersonal;ProjectPersonal"`,
   locally and in CI, so only the shared layers apply and their results don't depend on anyone's
   IDE settings. Not `--no-buildin-settings`: it also drops the shared `.sln.DotSettings`.
-- **CI (GitHub Actions) is strict:** the build passes with warnings as errors, all tests pass,
-  `jb cleanupcode` leaves no diff, and `jb inspectcode` reports nothing at warning level or above.
+- **CI (GitHub Actions) is strict:** the build passes with warnings as errors, all tests pass with
+  coverage at or above its threshold, `jb cleanupcode` leaves no diff, and `jb inspectcode` reports
+  nothing at warning level or above.
 
 ## C# testing
 
@@ -39,6 +40,10 @@ this file.
   `DynamicProxyGenAssembly2` so NSubstitute can proxy internal types; never reach private members
   through reflection.
 - **All test doubles use NSubstitute**, with `NSubstitute.Analyzers.CSharp` in every test project.
+- **Coverage is measured by coverlet** (`coverlet.MTP`, in every test project). The threshold is
+  set in the test project's `TestingPlatformCommandLineArguments`
+  (`--coverlet --coverlet-include "[<Project>]*" --coverlet-threshold <percent>`), so every
+  `dotnet test` run enforces it, CI's included.
 - **Names:** `MethodName_Scenario_ExpectedResult` (`Parse_EmptyInput_ReturnsNoEntries`), in a class
   named after the unit under test.
 - **Layout:** one `<Project>.Tests` project per production project, folders mirroring it.
