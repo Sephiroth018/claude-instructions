@@ -272,5 +272,6 @@ deliberate workaround, or an external fact with its source (e.g. the API member 
 - **A failing or flaky test is a bug.** Never skip or disable one without an issue number.
 - **Names** say the unit, the scenario and the expected result (parse, empty input, returns no
   entries), grouped by the unit under test; the form and the layout are in the language part.
-- **Coverage thresholds are enforced in CI and only go up**: raise them when a change adds coverage.
-  A project may set a different policy under "Project".
+- **Where a project has tests, coverage thresholds are enforced in CI and only go up**: raise them
+  when a change adds coverage. The coverage tool and where the threshold is set are in the
+  language part. A project may set a different policy under "Project".

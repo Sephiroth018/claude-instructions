@@ -41,8 +41,9 @@ changes once. The repository is a public GitHub repository, `Sephiroth018/claude
   repository.** They do name what every repository's workflow uses: git, GitHub, 1Password and
   Claude Code. Where a rule of `general.md` depends on the language, it says "the language part"
   and every language file answers it: the formatter, the type checker or linter, the test
-  framework and its parameterized tests, the mocking library, how tests reach internals, test
-  names and layout, naming and casing, and the conventions that need judgment.
+  framework and its parameterized tests, the mocking library, the coverage tool and where its
+  threshold is set, how tests reach internals, test names and layout, naming and casing, and the
+  conventions that need judgment.
 - **A language file names no project.** What only one repository does goes in that repository's
   Project part.
 - **A change here changes every consuming repository's rules.** Its issue says which repositories
