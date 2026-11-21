@@ -143,16 +143,8 @@ Apply these to every change and check them in every review.
 - **Types say what things are.** A concept several types share is a shared type: a base for the
   common fields, an interface for a role unrelated types play. Judge by concept, not by whether
   code uses the shared part today. Two types that merely look alike stay separate.
-- **A thing that passes through states gets one type per state**, derived from the thing's base:
-  an order that is first a draft and then placed is an order base with a draft order and a placed
-  order. Each state also has an interface its types share, so a list of placed things is typed by
-  what "placed" guarantees.
 - **A choice is structure, not nullable fields.** "Only the fields its type uses are set" means one
   derived type per case. Fields that are null together become one nullable nested type.
-- **Generics where only a member's type varies**, never its name or meaning. Where members are
-  added, use a base type.
-- **A type owns what's about itself**: its shape, its comparison, how it's written out. Code that
-  handles many types knows only their common base.
 - **Pure logic in the middle, side effects at the edges.** I/O, external systems, time and
   randomness stay at the boundaries, so the core is testable without them.
 - **Validate at boundaries, trust inside.** Input is checked where it enters; inner code doesn't

@@ -53,6 +53,14 @@ needs judgment.
   stay unsealed.
 - **Immutable by default:** records for data, `init` and `readonly` where possible, and read-only
   collection interfaces (`IReadOnlyList<T>`, `IReadOnlyDictionary<TKey, TValue>`) in signatures.
+- **A thing that passes through states gets one type per state**, derived from the thing's base:
+  an order that is first a draft and then placed is an order base with a draft order and a placed
+  order. Each state also has an interface its types share, so a list of placed things is typed by
+  what "placed" guarantees.
+- **Generics where only a member's type varies**, never its name or meaning. Where members are
+  added, use a base type.
+- **A type owns what's about itself**: its shape, its comparison, how it's written out. Code that
+  handles many types knows only their common base.
 - **No escape hatches** (null-forgiving `!`, `#nullable disable`, `dynamic`, reflection) without a
   narrow, stated reason. Where a project needs one (e.g. reflection for a host's private members),
   its "Project" part says where.
