@@ -8,8 +8,8 @@ this file.
 - **SDK-style projects, built and tested with `dotnet`**, also for .NET Framework targets. Shared
   settings live in `Directory.Build.props`, package versions in `Directory.Packages.props` (central
   package management), the SDK version in `global.json`, and tools in `.config/dotnet-tools.json`
-  (`dotnet tool restore`). A new solution takes `Directory.Build.props` and `.editorconfig` from an
-  existing one, since they hold the rules the build enforces.
+  (`dotnet tool restore`). A new solution takes `Directory.Build.props` from an existing one, since
+  it makes the build enforce the rules.
 - **The CLI's project, solution and package commands** (`dotnet new`, `dotnet sln add`,
   `dotnet add package`) are the ones "Hygiene" lets change files.
 - **Solution format:** keep a repository's existing one; new repositories use `.slnx`.
@@ -20,9 +20,11 @@ this file.
   ReSharper settings file `<solution name>.sln.DotSettings` (named so even for `.slnx`), created
   when the first one is needed. Its `end_of_line = lf` matches `.gitattributes`, so formatting
   checks see the same line endings on every machine.
-- **`.editorconfig` ends with `.claude/shared/csharp.editorconfig`, unchanged:** the settings every
-  C# repository shares. An update that changes it arrives as a draft PR whose checklist asks for
-  the copy, made in a further commit on that PR.
+- **`.editorconfig` ends with `.claude/shared/csharp.editorconfig`, unchanged:** every rule for
+  `*.cs` files that C# repositories share, the naming rules among them. Above it are only the
+  settings for all files (charset, line endings, indentation) and the repository's own exceptions.
+  An update that changes it arrives as a draft PR whose checklist asks for the copy, made in a
+  further commit on that PR.
 - **ReSharper Command Line Tools** (`JetBrains.ReSharper.GlobalTools`, a local tool) apply the
   IDE's rules outside it: `jb cleanupcode` is the formatter, `jb inspectcode` reports the
   inspections. Both run with
