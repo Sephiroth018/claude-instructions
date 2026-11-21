@@ -18,8 +18,8 @@ this file.
 - **`.editorconfig` is the single source of style, formatting and naming rules**, ReSharper's
   included (`resharper_*` keys). Inspection severities it can't express go in the team-shared
   ReSharper settings file `<solution name>.sln.DotSettings` (named so even for `.slnx`), created
-  when the first one is needed. Never loosen either to make a change pass. Its `end_of_line = lf`
-  matches `.gitattributes`, so formatting checks see the same line endings on every machine.
+  when the first one is needed. Its `end_of_line = lf` matches `.gitattributes`, so formatting
+  checks see the same line endings on every machine.
 - **`.editorconfig` ends with `.claude/shared/csharp.editorconfig`, unchanged:** the settings every
   C# repository shares. An update that changes it arrives as a draft PR whose checklist asks for
   the copy, made in a further commit on that PR.
@@ -31,7 +31,6 @@ this file.
   IDE settings. Not `--no-buildin-settings`: it also drops the shared `.sln.DotSettings`.
 - **CI (GitHub Actions) is strict:** the build passes with warnings as errors, all tests pass,
   `jb cleanupcode` leaves no diff, and `jb inspectcode` reports nothing at warning level or above.
-  Fix the cause; never weaken a check to get green.
 
 ## C# testing
 
@@ -65,5 +64,5 @@ needs judgment.
 - **Async all the way:** no `.Result` or `.Wait()`, no `async void` outside event handlers.
 - **Extension methods only for types we don't own**, never to avoid putting a method in the right
   class.
-- **XML docs link symbols with `<see cref="..."/>`** so renames follow; `//` comments, where no
-  cref can be written, use the plain name, as `(Type.Member)` where it's a side reference.
+- **XML docs link symbols with `<see cref="..."/>`**; `//` comments, where no cref can be written,
+  use the plain name.

@@ -82,10 +82,9 @@ Once per repository, before the rest of the workflow applies:
 - **Commit messages:** `<type>(#<issue>): <imperative summary>`, with type `feat`, `fix`,
   `refactor`, `docs`, `test` or `chore` (build, dependencies, CI, tooling).
 - **The per-commit rule:** every commit lands on `main` (PRs merge with merge commits), so each one
-  is formatted with the language part's formatter, builds or loads, and breaks nothing that worked.
-  New code may be unreachable or incomplete, but nothing crashes, the existing tests still pass,
-  and the static checks report nothing at warning level or above except what that unfinished state
-  causes (unreachable or unused code). It's checked before each commit.
+  passes steps 2-5 of the "Definition of done", checked before the commit. New code may be
+  unreachable or incomplete, and steps 3 and 5 may report what that unfinished state causes
+  (unreachable or unused code).
 - **Push every commit** right after making it.
 - **Moves and renames get their own commit**, made with `git mv`, containing only the move and the
   minimal edits it forces (module paths, references), so git keeps following the file's history.
@@ -106,7 +105,7 @@ Once per repository, before the rest of the workflow applies:
   title and description final. The description explains what the code can't (why, rejected
   alternatives, risks, how it was verified, what deserves a close look). No file-by-file list.
 - **Watch the PR** once it's ready: turn on the desktop app's monitoring (auto-fix CI, address
-  comments). Fix CI failures at the cause; never skip or weaken a check.
+  comments). Fix CI failures at the cause (see "Errors").
 - **The user's own review comments fire no events** (a solo author can only leave "comment"
   reviews). When the user says they've reviewed, read all three surfaces: PR comments, inline diff
   comments and review summaries. Answer each comment on the PR, inline ones in their own thread.
@@ -192,6 +191,8 @@ Apply these to every change and check them in every review.
   control flow.
 - **Don't silence the compiler, type checker or linter** without a narrow, stated reason (see the
   language part's conventions).
+- **Never weaken a check to make a change pass**: not the formatter's, type checker's or linter's
+  configuration, and not a CI check, which is never skipped either. Fix the cause.
 
 ### Dependencies
 
