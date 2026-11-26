@@ -41,16 +41,17 @@
 
 - **Every change starts from a GitHub issue**, small ones included. Search for an existing one
   before creating it.
-- **Issue work happens in a worktree session of its own.** A session started on `main` only
-  gets the issue: it searches for an existing one, else creates it with only what the user
-  said, without planning, investigating or editing. Then it starts a worktree session
-  (`start_session` with `use_worktree`) titled `Issue #<nr>: <issue title>` ("Issue #239: Add
-  a retry limit to the upload queue"), with `branch_name` `<issue>-<short-slug>` and a brief
-  that links the issue, and archives itself right away (`archive_session` with "self"):
-  archiving also archives finished side sessions, so the new session is only safe during its
-  first turn. The worktree session does the rest: the implementation plan, sign-off,
-  implementation and PR. A session started for an issue from another session is started the
-  same way.
+- **Issue work happens in a worktree session of its own.** A session started on `main` first
+  updates it (`git pull --prune`), so the worktree session starts from the current `main` and
+  its instructions. Then it only gets the issue: it searches for an existing one, else creates
+  it with only what the user said, without planning, investigating or editing. After that it
+  starts a worktree session (`start_session` with `use_worktree`) titled
+  `Issue #<nr>: <issue title>` ("Issue #239: Add a retry limit to the upload queue"), with
+  `branch_name` `<issue>-<short-slug>` and a brief that links the issue, and archives itself
+  right away (`archive_session` with "self"): archiving also archives finished side sessions,
+  so the new session is only safe during its first turn. The worktree session does the rest:
+  the implementation plan, sign-off, implementation and PR. A session started for an issue
+  from another session is started the same way.
 - **Where a session can't start another one**, it branches off an up-to-date `main` itself and
   renames itself to that title.
 - **The issue records every decision about it.** Signed-off plans and later decisions go into the
